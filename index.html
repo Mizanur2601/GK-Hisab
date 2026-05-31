@@ -33,7 +33,7 @@
   header {
     background: linear-gradient(135deg, #16a34a 0%, #065f46 100%);
     color: white;
-    padding: 18px 24px;
+    padding: 12px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -41,10 +41,13 @@
     position: sticky;
     top: 0;
     z-index: 100;
+    flex-wrap: wrap;
+    gap: 8px;
   }
-  header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; }
+  header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.5px; }
+  @media(max-width:480px){ header h1 { font-size: 1rem; } }
   header span { font-size: 0.85rem; opacity: 0.85; }
-  .container { max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
+  .container { max-width: 900px; margin: 0 auto; padding: 16px 12px 80px; }
 
   /* Summary Cards */
   .summary {
@@ -53,7 +56,7 @@
     gap: 14px;
     margin-bottom: 24px;
   }
-  @media(max-width:600px){ .summary { grid-template-columns: 1fr; } }
+  @media(max-width:600px){ .summary { grid-template-columns: repeat(3,1fr); gap: 8px; } }
   .card {
     background: var(--card);
     border-radius: 16px;
@@ -63,6 +66,7 @@
   }
   .card-label { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
   .card-amount { font-size: 1.75rem; font-weight: 700; }
+  @media(max-width:600px){ .card { padding: 12px 10px; } .card-amount { font-size: 1.1rem; } .card-label { font-size: 0.72rem; } }
   .card.income .card-amount { color: var(--green); }
   .card.expense .card-amount { color: var(--red); }
   .card.profit .card-amount { color: var(--blue); }
@@ -92,6 +96,7 @@
     color: var(--text-muted);
     transition: all 0.2s;
   }
+  @media(max-width:480px){ .tab-btn { font-size: 0.72rem; padding: 8px 2px; } }
   .tab-btn.active {
     background: linear-gradient(135deg, #16a34a, #065f46);
     color: white;
@@ -348,11 +353,11 @@
 
   /* Export */
   .export-btn {
-    padding: 9px 18px;
+    padding: 7px 12px;
     border: none;
     border-radius: 10px;
     font-family: 'Hind Siliguri', sans-serif;
-    font-size: 0.88rem;
+    font-size: 0.78rem;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s;
@@ -471,6 +476,21 @@
     text-align: center;
   }
 
+  /* Mobile bottom safe area */
+  @media(max-width:600px){
+    .container { padding-bottom: 100px; }
+    .form-card { padding: 16px; }
+    .btn { font-size: 0.9rem; padding: 11px; }
+    .filter-bar { gap: 6px; }
+    .filter-bar input, .filter-bar select { font-size: 0.82rem; padding: 7px 9px; }
+  }
+  /* Touch friendly inputs */
+  @media(max-width:600px){
+    .form-group input, .form-group select, .form-group textarea { font-size: 16px; padding: 12px 13px; }
+    .item-row input, .item-row select { font-size: 16px; }
+    .login-field input { font-size: 16px; }
+  }
+
   /* Toast */
   #toast {
     position: fixed;
@@ -492,8 +512,10 @@
 
   /* Scrollable table on small screen */
   @media(max-width:640px){
-    .table-scroll { overflow-x: auto; }
-    table { min-width: 520px; }
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { min-width: 460px; }
+    thead th { font-size: 0.78rem; padding: 10px 8px; }
+    tbody td { font-size: 0.82rem; padding: 9px 8px; }
   }
 
   /* Login Screen */
@@ -658,12 +680,12 @@
 <header>
   <div>
     <h1>💼 ব্যবসার হিসাব</h1>
-    <span id="header-date"></span>
+    <span id="header-date" style="font-size:0.75rem;opacity:0.85;display:block"></span>
   </div>
-  <div style="display:flex;gap:10px;align-items:center">
-    <button class="export-btn" onclick="exportCSV()">📥 CSV Export</button>
-    <button class="export-btn" onclick="document.getElementById('change-pass-modal').classList.add('open')">🔒 পাসওয়ার্ড</button>
-    <button class="logout-btn" onclick="doLogout()">🚪 লগআউট</button>
+  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+    <button class="export-btn" onclick="exportCSV()">📥 CSV</button>
+    <button class="export-btn" onclick="document.getElementById('change-pass-modal').classList.add('open')">🔒</button>
+    <button class="logout-btn" onclick="doLogout()">🚪</button>
   </div>
 </header>
 
