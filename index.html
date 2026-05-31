@@ -684,10 +684,12 @@
     <h1>💼 ব্যবসার হিসাব</h1>
     <span id="header-date" style="font-size:0.75rem;opacity:0.85;display:block"></span>
   </div>
-  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-    <button class="export-btn" onclick="exportCSV()">📥 CSV</button>
-    <button class="export-btn" onclick="document.getElementById('change-pass-modal').classList.add('open')">🔒</button>
-    <button class="logout-btn" onclick="doLogout()">🚪</button>
+  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+    <button class="export-btn" onclick="backupData()" title="Backup নিন">💾</button>
+    <button class="export-btn" onclick="document.getElementById('restore-modal').classList.add('open')" title="Restore করুন">📂</button>
+    <button class="export-btn" onclick="exportCSV()" title="CSV Export">📥</button>
+    <button class="export-btn" onclick="document.getElementById('change-pass-modal').classList.add('open')" title="পাসওয়ার্ড">🔒</button>
+    <button class="logout-btn" onclick="doLogout()" title="লগআউট">🚪</button>
   </div>
 </header>
 
@@ -914,6 +916,24 @@
     <div class="modal-btns">
       <button class="btn btn-cancel" onclick="closePdfModal()">বাতিল</button>
       <button class="btn btn-income" onclick="generatePDF()">📥 PDF ডাউনলোড</button>
+    </div>
+  </div>
+</div>
+
+<!-- Restore Modal -->
+<div class="modal-overlay" id="restore-modal">
+  <div class="modal">
+    <h2>📂 Backup Restore করুন</h2>
+    <p style="font-size:0.85rem;color:#666;margin-bottom:16px;line-height:1.6">আগে নেওয়া backup ফাইল (.json) সিলেক্ট করুন। বর্তমান সব data মুছে backup থেকে restore হবে।</p>
+    <div class="modal-field">
+      <label>Backup ফাইল সিলেক্ট করুন</label>
+      <input type="file" id="restore-file-inp" accept=".json" style="border:1.5px dashed var(--border);border-radius:10px;padding:12px;font-family:'Hind Siliguri',sans-serif;font-size:0.9rem;background:var(--bg);width:100%;cursor:pointer">
+    </div>
+    <div id="restore-error" style="background:#fee2e2;color:#dc2626;border-radius:10px;padding:9px 14px;font-size:0.85rem;font-weight:600;margin-top:8px;display:none"></div>
+    <div id="restore-success" style="background:#dcfce7;color:#16a34a;border-radius:10px;padding:9px 14px;font-size:0.85rem;font-weight:600;margin-top:8px;display:none"></div>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="document.getElementById('restore-modal').classList.remove('open')">বাতিল</button>
+      <button class="btn btn-income" onclick="doRestore()">📂 Restore করুন</button>
     </div>
   </div>
 </div>
@@ -1483,6 +1503,68 @@
     });
   });
 
+  // ---- Backup & Restore ----
+  function backupData() {
+    const backup = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      entries: entries,
+      archives: archives
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateStr = new Date().toLocaleDateString('en-GB').replace(/\//g,'-');
+    a.href = url;
+    a.download = 'GK-Hisab-Backup-' + dateStr + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('💾 Backup সফলভাবে ডাউনলোড হয়েছে!');
+  }
+
+  function doRestore() {
+    const fileInp = document.getElementById('restore-file-inp');
+    const errEl = document.getElementById('restore-error');
+    const sucEl = document.getElementById('restore-success');
+    errEl.style.display = 'none';
+    sucEl.style.display = 'none';
+
+    if (!fileInp.files || !fileInp.files[0]) {
+      errEl.textContent = '❌ আগে একটি .json ফাইল সিলেক্ট করুন!';
+      errEl.style.display = 'block'; return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!data.entries || !Array.isArray(data.entries)) throw new Error('invalid');
+        if (!confirm('বর্তমান সব data মুছে backup restore করবেন?')) return;
+        entries = data.entries;
+        archives = data.archives || [];
+        save();
+        saveArchives();
+        updateSummary();
+        sucEl.textContent = '✅ ' + entries.length + 'টি লেনদেন সফলভাবে restore হয়েছে!';
+        sucEl.style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('restore-modal').classList.remove('open');
+          fileInp.value = '';
+          renderTable();
+          renderArchive();
+        }, 1500);
+      } catch(err) {
+        errEl.textContent = '❌ ফাইলটি সঠিক backup ফাইল নয়!';
+        errEl.style.display = 'block';
+      }
+    };
+    reader.readAsText(fileInp.files[0]);
+  }
+
+  // Close restore modal on overlay click
+  document.getElementById('restore-modal').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+
   // ---- PDF Report ----
   function openPdfModal() {
     // Default to current month
@@ -1626,19 +1708,8 @@
     if (e.target === this) closePdfModal();
   });
 
-  // Sample data for first visit
-  if (entries.length === 0) {
-    entries = [
-      {id:1, date: today, type:'income',  desc:'বই বিক্রয়',       amount:12000, category:'বই বিক্রয়',           note:''},
-      {id:2, date: today, type:'income',  desc:'কোর্স ফি',         amount:5000,  category:'অন্যান্য আয়',         note:''},
-      {id:3, date: today, type:'expense', desc:'বই ক্রয়',          amount:6000,  category:'পণ্য ক্রয়',           note:''},
-      {id:4, date: today, type:'expense', desc:'বুস্টিং খরচ',      amount:2000,  category:'বুস্টিং / মার্কেটিং', note:''},
-      {id:5, date: today, type:'expense', desc:'ট্রান্সপোর্ট খরচ', amount:800,   category:'পরিবহন',               note:''},
-      {id:6, date: today, type:'expense', desc:'দোকান ভাড়া',       amount:3000,  category:'ভাড়া',                note:'মাসিক'},
-    ];
-    save();
-    updateSummary();
-  }
+  // No sample data — start fresh
+  updateSummary();
 </script>
 </body>
 </html>
