@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ব্যবসার হিসাব</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #16a34a;
+    --green-light: #dcfce7;
+    --green-dark: #14532d;
+    --red: #dc2626;
+    --red-light: #fee2e2;
+    --blue: #1d4ed8;
+    --blue-light: #dbeafe;
+    --yellow: #ca8a04;
+    --yellow-light: #fef9c3;
+    --bg: #f0fdf4;
+    --card: #ffffff;
+    --border: #bbf7d0;
+    --text: #14532d;
+    --text-muted: #4b7c5c;
+    --shadow: 0 4px 24px rgba(22,163,74,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Hind Siliguri', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    background: linear-gradient(135deg, #16a34a 0%, #065f46 100%);
+    color: white;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 12px rgba(22,163,74,0.3);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; }
+  header span { font-size: 0.85rem; opacity: 0.85; }
+  .container { max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
+
+  /* Summary Cards */
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  @media(max-width:600px){ .summary { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+    border: 1.5px solid var(--border);
+  }
+  .card-label { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
+  .card-amount { font-size: 1.75rem; font-weight: 700; }
+  .card.income .card-amount { color: var(--green); }
+  .card.expense .card-amount { color: var(--red); }
+  .card.profit .card-amount { color: var(--blue); }
+  .card-icon { font-size: 1.4rem; float: right; margin-top: -36px; }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    background: white;
+    padding: 6px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    border: 1.5px solid var(--border);
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 10px 0;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    background: linear-gradient(135deg, #16a34a, #065f46);
+    color: white;
+    box-shadow: 0 2px 8px rgba(22,163,74,0.3);
+  }
+
+  /* Form */
+  .form-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    border: 1.5px solid var(--border);
+    margin-bottom: 22px;
+  }
+  .form-card h2 { font-size: 1.1rem; margin-bottom: 16px; color: var(--green-dark); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  @media(max-width:520px){ .form-row { grid-template-columns: 1fr; } }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group label { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); }
+  .form-group input, .form-group select, .form-group textarea {
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 13px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 0.97rem;
+    outline: none;
+    transition: border 0.2s;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .form-group input:focus, .form-group select:focus { border-color: var(--green); background: white; }
+  .form-group textarea { resize: vertical; min-height: 60px; }
+  .btn-row { display: flex; gap: 10px; margin-top: 6px; }
+  .btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-income { background: linear-gradient(135deg, #16a34a, #065f46); color: white; }
+  .btn-expense { background: linear-gradient(135deg, #dc2626, #991b1b); color: white; }
+  .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-bar input, .filter-bar select {
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 0.9rem;
+    background: white;
+    color: var(--text);
+    outline: none;
+  }
+  .filter-bar input { flex: 1; min-width: 130px; }
+
+  /* Table */
+  .table-wrap {
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    border: 1.5px solid var(--border);
+    overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: linear-gradient(135deg, #16a34a, #065f46); }
+  thead th { color: white; padding: 13px 14px; font-size: 0.88rem; font-weight: 600; text-align: left; }
+  tbody tr { border-bottom: 1px solid #e8fce8; transition: background 0.15s; }
+  tbody tr:hover { background: #f0fdf4; }
+  tbody td { padding: 11px 14px; font-size: 0.93rem; vertical-align: middle; }
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .badge-income { background: var(--green-light); color: var(--green); }
+  .badge-expense { background: var(--red-light); color: var(--red); }
+  .amount-income { color: var(--green); font-weight: 700; }
+  .amount-expense { color: var(--red); font-weight: 700; }
+  .del-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: #ccc;
+    transition: color 0.2s;
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+  .del-btn:hover { color: var(--red); background: #fee2e2; }
+  .empty-row td { text-align: center; color: var(--text-muted); padding: 32px; font-size: 0.95rem; }
+
+  /* Report tab */
+  .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media(max-width:520px){ .report-grid { grid-template-columns: 1fr; } }
+  .report-card {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 18px;
+    border: 1.5px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .report-card h3 { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 14px; border-bottom: 1px dashed var(--border); padding-bottom: 8px; }
+  .report-item { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px dotted #e8fce8; font-size: 0.92rem; }
+  .report-item:last-child { border-bottom: none; }
+  .report-item .label { color: var(--text-muted); }
+  .report-item .val { font-weight: 700; }
+  .bar-wrap { margin-top: 10px; }
+  .bar-label { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 3px; display: flex; justify-content: space-between; }
+  .bar { height: 10px; background: #e8fce8; border-radius: 8px; overflow: hidden; margin-bottom: 8px; }
+  .bar-fill { height: 100%; border-radius: 8px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+  .bar-fill.income { background: var(--green); }
+  .bar-fill.expense { background: var(--red); }
+
+  /* Multi-item entry */
+  .type-toggle {
+    flex: 1;
+    padding: 10px 0;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 0.97rem;
+    font-weight: 700;
+    cursor: pointer;
+    background: white;
+    transition: all 0.18s;
+    color: var(--text-muted);
+  }
+  .type-income.active-type { background: linear-gradient(135deg,#16a34a,#065f46); color: white; border-color: #16a34a; }
+  .type-expense.active-type { background: linear-gradient(135deg,#dc2626,#991b1b); color: white; border-color: #dc2626; }
+
+  .item-row {
+    display: grid;
+    grid-template-columns: 1fr 120px 130px 36px;
+    gap: 8px;
+    align-items: end;
+    margin-bottom: 10px;
+    background: #f8fffe;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 12px 10px;
+    animation: slideIn 0.18s ease;
+  }
+  @keyframes slideIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+  @media(max-width:560px){
+    .item-row { grid-template-columns: 1fr 1fr; }
+    .item-row .item-del { grid-column: 2; justify-self: end; }
+  }
+  .item-row .form-group label { font-size: 0.75rem; }
+  .item-row input, .item-row select {
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 0.9rem;
+    background: white;
+    color: var(--text);
+    outline: none;
+    width: 100%;
+  }
+  .item-row input:focus, .item-row select:focus { border-color: var(--green); }
+  .item-del {
+    width: 36px; height: 36px;
+    border: none; border-radius: 8px;
+    background: #fee2e2; color: #dc2626;
+    font-size: 1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    margin-bottom: 1px;
+  }
+  .item-del:hover { background: #dc2626; color: white; }
+  .add-item-btn {
+    width: 100%;
+    padding: 10px;
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--green);
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s;
+    margin-bottom: 4px;
+  }
+  .add-item-btn:hover { background: var(--green-light); border-color: var(--green); }
+
+  /* Archive Cards */
+  .archive-card {
+    background: white;
+    border-radius: 14px;
+    border: 1.5px solid #fed7aa;
+    box-shadow: 0 2px 12px rgba(202,138,4,0.08);
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .archive-header {
+    background: linear-gradient(135deg, #ca8a04, #92400e);
+    color: white;
+    padding: 13px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+  }
+  .archive-header h3 { font-size: 1rem; font-weight: 700; }
+  .archive-header .ameta { font-size: 0.78rem; opacity: 0.85; }
+  .archive-body { padding: 0; max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+  .archive-body.open { max-height: 2000px; }
+  .archive-summary {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 10px;
+    padding: 14px 16px;
+    background: #fffbeb;
+    border-bottom: 1px solid #fed7aa;
+  }
+  .asbox { text-align:center; }
+  .asbox .al { font-size: 0.72rem; color: #92400e; margin-bottom: 2px; }
+  .asbox .av { font-size: 1.05rem; font-weight: 700; }
+  .archive-actions { padding: 10px 16px; display: flex; gap: 8px; background: #fffbeb; border-bottom: 1px solid #fed7aa; }
+  .arch-btn {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .arch-btn-restore { background: #dcfce7; color: #16a34a; }
+  .arch-btn-restore:hover { background: #16a34a; color: white; }
+  .arch-btn-del { background: #fee2e2; color: #dc2626; }
+  .arch-btn-del:hover { background: #dc2626; color: white; }
+  .archive-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .archive-table th { background: #fef3c7; color: #92400e; padding: 7px 12px; text-align: left; font-weight: 600; }
+  .archive-table td { padding: 6px 12px; border-bottom: 1px solid #fef3c7; }
+
+  /* Export */
+  .export-btn {
+    padding: 9px 18px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: white;
+    color: var(--green);
+    border: 1.5px solid var(--green);
+  }
+  .export-btn:hover { background: var(--green); color: white; }
+
+  /* PDF Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 20px;
+    padding: 28px;
+    width: 92%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    animation: popIn 0.2s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes popIn { from { transform: scale(0.92); opacity:0; } to { transform: scale(1); opacity:1; } }
+  .modal h2 { font-size: 1.15rem; color: var(--green-dark); margin-bottom: 18px; }
+  .modal-field { margin-bottom: 14px; }
+  .modal-field label { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 5px; }
+  .modal-field input, .modal-field select {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 13px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 0.97rem;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+  }
+  .modal-field input:focus { border-color: var(--green); }
+  .modal-btns { display: flex; gap: 10px; margin-top: 18px; }
+  .modal-btns .btn { flex: 1; }
+  .btn-cancel { background: #f1f5f9; color: #64748b; }
+  .btn-cancel:hover { background: #e2e8f0; }
+
+  /* Print styles — the actual PDF page */
+  @media print {
+    body > * { display: none !important; }
+    #print-area { display: block !important; }
+    #print-area { margin: 0; padding: 0; }
+  }
+  #print-area { display: none; }
+
+  .pdf-page {
+    font-family: 'Hind Siliguri', sans-serif;
+    padding: 32px 36px;
+    max-width: 720px;
+    margin: 0 auto;
+    color: #111;
+  }
+  .pdf-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 3px solid #16a34a;
+    padding-bottom: 14px;
+    margin-bottom: 20px;
+  }
+  .pdf-header h1 { font-size: 1.5rem; color: #14532d; }
+  .pdf-header .meta { font-size: 0.82rem; color: #666; text-align: right; line-height: 1.6; }
+  .pdf-summary {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+  .pdf-sum-box {
+    border: 1.5px solid #bbf7d0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    text-align: center;
+  }
+  .pdf-sum-box .lbl { font-size: 0.75rem; color: #666; margin-bottom: 4px; }
+  .pdf-sum-box .val { font-size: 1.2rem; font-weight: 700; }
+  .pdf-sum-box.inc .val { color: #16a34a; }
+  .pdf-sum-box.exp .val { color: #dc2626; }
+  .pdf-sum-box.prf .val { color: #1d4ed8; }
+  .pdf-section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #14532d;
+    background: #dcfce7;
+    padding: 7px 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    margin-top: 18px;
+  }
+  .pdf-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .pdf-table th { background: #16a34a; color: white; padding: 8px 10px; text-align: left; font-weight: 600; }
+  .pdf-table td { padding: 7px 10px; border-bottom: 1px solid #e8fce8; }
+  .pdf-table tr:nth-child(even) td { background: #f0fdf4; }
+  .pdf-table .amt-inc { color: #16a34a; font-weight: 700; }
+  .pdf-table .amt-exp { color: #dc2626; font-weight: 700; }
+  .pdf-cat-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .pdf-cat-table td { padding: 6px 10px; border-bottom: 1px dashed #bbf7d0; }
+  .pdf-footer {
+    margin-top: 28px;
+    border-top: 1px dashed #bbf7d0;
+    padding-top: 10px;
+    font-size: 0.75rem;
+    color: #aaa;
+    text-align: center;
+  }
+
+  /* Toast */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #14532d;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+    transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+    z-index: 999;
+    white-space: nowrap;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Scrollable table on small screen */
+  @media(max-width:640px){
+    .table-scroll { overflow-x: auto; }
+    table { min-width: 520px; }
+  }
+
+  /* Login Screen */
+  #login-screen {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #16a34a 0%, #065f46 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+  #login-screen.hidden { display: none; }
+  .login-box {
+    background: white;
+    border-radius: 24px;
+    padding: 36px 32px;
+    width: 92%;
+    max-width: 380px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    text-align: center;
+  }
+  .login-logo { font-size: 2.8rem; margin-bottom: 8px; }
+  .login-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--green-dark);
+    margin-bottom: 4px;
+  }
+  .login-sub { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 28px; }
+  .login-field { margin-bottom: 14px; text-align: left; }
+  .login-field label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 5px; }
+  .login-field input {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 0.97rem;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    transition: border 0.2s;
+  }
+  .login-field input:focus { border-color: var(--green); background: white; }
+  .login-btn {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, #16a34a, #065f46);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 6px;
+    transition: all 0.2s;
+  }
+  .login-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .login-error {
+    background: #fee2e2;
+    color: #dc2626;
+    border-radius: 10px;
+    padding: 9px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 12px;
+    display: none;
+  }
+  .login-error.show { display: block; }
+  .logout-btn {
+    padding: 7px 14px;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1.5px solid rgba(255,255,255,0.5);
+    border-radius: 8px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .logout-btn:hover { background: rgba(255,255,255,0.35); }
+</style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">💼</div>
+    <div class="login-title">ব্যবসার হিসাব</div>
+    <div class="login-sub">GK অ্যাকাউন্টে লগইন করুন</div>
+    <div class="login-field">
+      <label>ইউজার আইডি</label>
+      <input type="text" id="login-id" placeholder="আইডি লিখুন" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>পাসওয়ার্ড</label>
+      <input type="password" id="login-pass" placeholder="পাসওয়ার্ড লিখুন" autocomplete="current-password" onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">🔐 লগইন করুন</button>
+    <div class="login-error" id="login-error">❌ আইডি বা পাসওয়ার্ড ভুল!</div>
+    <div style="margin-top:14px">
+      <button onclick="openForgotModal()" style="background:none;border:none;color:#9d6b6b;font-family:'Hind Siliguri',sans-serif;font-size:0.82rem;cursor:pointer;text-decoration:underline;">🔑 পাসওয়ার্ড ভুলে গেছি</button>
+    </div>
+  </div>
+</div>
+
+<!-- Forgot / Admin Recovery Modal -->
+<div class="modal-overlay" id="forgot-modal" style="z-index:99999">
+  <div class="modal">
+    <h2>🔑 পাসওয়ার্ড রিসেট</h2>
+    <p style="font-size:0.85rem;color:#666;margin-bottom:16px;line-height:1.6">Admin পাসওয়ার্ড দিয়ে নতুন পাসওয়ার্ড সেট করুন।</p>
+    <div class="modal-field">
+      <label>Admin পাসওয়ার্ড</label>
+      <input type="password" id="admin-pass-inp" placeholder="Admin পাসওয়ার্ড লিখুন">
+    </div>
+    <div class="modal-field">
+      <label>নতুন পাসওয়ার্ড</label>
+      <input type="password" id="new-pass-inp" placeholder="নতুন পাসওয়ার্ড লিখুন">
+    </div>
+    <div class="modal-field">
+      <label>নতুন পাসওয়ার্ড আবার লিখুন</label>
+      <input type="password" id="new-pass-confirm-inp" placeholder="আবার লিখুন">
+    </div>
+    <div id="forgot-error" style="background:#fee2e2;color:#dc2626;border-radius:10px;padding:9px 14px;font-size:0.85rem;font-weight:600;margin-top:8px;display:none"></div>
+    <div id="forgot-success" style="background:#dcfce7;color:#16a34a;border-radius:10px;padding:9px 14px;font-size:0.85rem;font-weight:600;margin-top:8px;display:none"></div>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="closeForgotModal()">বাতিল</button>
+      <button class="btn btn-income" onclick="doAdminReset()">✅ পাসওয়ার্ড পরিবর্তন করুন</button>
+    </div>
+  </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal-overlay" id="change-pass-modal">
+  <div class="modal">
+    <h2>🔒 পাসওয়ার্ড পরিবর্তন</h2>
+    <div class="modal-field">
+      <label>পুরনো পাসওয়ার্ড</label>
+      <input type="password" id="old-pass-inp" placeholder="পুরনো পাসওয়ার্ড লিখুন">
+    </div>
+    <div class="modal-field">
+      <label>নতুন পাসওয়ার্ড</label>
+      <input type="password" id="cp-new-pass-inp" placeholder="নতুন পাসওয়ার্ড লিখুন">
+    </div>
+    <div class="modal-field">
+      <label>নতুন পাসওয়ার্ড আবার লিখুন</label>
+      <input type="password" id="cp-new-pass-confirm-inp" placeholder="আবার লিখুন">
+    </div>
+    <div id="cp-error" style="background:#fee2e2;color:#dc2626;border-radius:10px;padding:9px 14px;font-size:0.85rem;font-weight:600;margin-top:8px;display:none"></div>
+    <div id="cp-success" style="background:#dcfce7;color:#16a34a;border-radius:10px;padding:9px 14px;font-size:0.85rem;font-weight:600;margin-top:8px;display:none"></div>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="document.getElementById('change-pass-modal').classList.remove('open')">বাতিল</button>
+      <button class="btn btn-income" onclick="doChangePass()">✅ পরিবর্তন করুন</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div>
+    <h1>💼 ব্যবসার হিসাব</h1>
+    <span id="header-date"></span>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <button class="export-btn" onclick="exportCSV()">📥 CSV Export</button>
+    <button class="export-btn" onclick="document.getElementById('change-pass-modal').classList.add('open')">🔒 পাসওয়ার্ড</button>
+    <button class="logout-btn" onclick="doLogout()">🚪 লগআউট</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Summary -->
+  <div class="summary">
+    <div class="card income">
+      <div class="card-label">মোট আয়</div>
+      <div class="card-amount" id="total-income">৳০</div>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px" id="income-count">০টি লেনদেন</div>
+    </div>
+    <div class="card expense">
+      <div class="card-label">মোট খরচ</div>
+      <div class="card-amount" id="total-expense">৳০</div>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px" id="expense-count">০টি লেনদেন</div>
+    </div>
+    <div class="card profit">
+      <div class="card-label">লাভ / ক্ষতি</div>
+      <div class="card-amount" id="total-profit">৳০</div>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px" id="profit-label">সমান</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('entry')">➕ এন্ট্রি</button>
+    <button class="tab-btn" onclick="showTab('list')">📋 তালিকা</button>
+    <button class="tab-btn" onclick="showTab('report')">📊 রিপোর্ট</button>
+    <button class="tab-btn" onclick="showTab('archive')">🗄️ আর্কাইভ</button>
+  </div>
+
+  <!-- Entry Tab -->
+  <div id="tab-entry">
+    <div class="form-card">
+      <h2>💰 নতুন হিসাব যোগ করুন</h2>
+
+      <!-- Date & Type row -->
+      <div class="form-row" style="margin-bottom:16px">
+        <div class="form-group">
+          <label>তারিখ</label>
+          <input type="date" id="inp-date">
+        </div>
+        <div class="form-group">
+          <label>ধরন</label>
+          <div style="display:flex;gap:8px">
+            <button id="type-btn-expense" class="type-toggle type-expense active-type" onclick="setEntryType('expense')">➖ খরচ</button>
+            <button id="type-btn-income" class="type-toggle type-income" onclick="setEntryType('income')">➕ আয়</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Items list -->
+      <div id="items-container"></div>
+
+      <!-- Add item row button -->
+      <button class="add-item-btn" onclick="addItemRow()">＋ আরেকটি আইটেম যোগ করুন</button>
+
+      <!-- Total preview -->
+      <div id="entry-total-bar" style="display:none;background:#f0fdf4;border:1.5px solid var(--border);border-radius:10px;padding:11px 16px;margin:12px 0;justify-content:space-between;align-items:center">
+        <span style="font-size:0.88rem;color:var(--text-muted);font-weight:600">মোট পরিমাণ:</span>
+        <span id="entry-total-val" style="font-size:1.2rem;font-weight:800;color:var(--green)">৳০</span>
+      </div>
+
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn btn-income" id="submit-btn" onclick="submitMultiEntry()">✅ হিসাব সংরক্ষণ করুন</button>
+      </div>
+    </div>
+
+    <!-- Close/Reset Card -->
+    <div class="form-card" style="border-color:#fca5a5;background:#fff8f8">
+      <h2 style="color:#991b1b">⚠️ হিসাব বন্ধ করুন</h2>
+      <p style="font-size:0.88rem;color:#666;margin-bottom:16px;line-height:1.6">বর্তমান হিসাব আর্কাইভে সেভ করে নতুন করে শুরু করুন। পুরনো সব লেনদেন <strong>আর্কাইভ ট্যাবে</strong> সংরক্ষিত থাকবে।</p>
+      <div class="btn-row">
+        <button class="btn" style="background:linear-gradient(135deg,#ca8a04,#92400e);color:white" onclick="openCloseModal()">🗄️ আর্কাইভ করে নতুন শুরু</button>
+        <button class="btn" style="background:linear-gradient(135deg,#dc2626,#991b1b);color:white" onclick="openResetModal()">🗑️ সব মুছে Reset করুন</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- List Tab -->
+  <div id="tab-list" style="display:none">
+    <div class="filter-bar">
+      <input type="text" id="search-inp" placeholder="🔍 খুঁজুন..." oninput="renderTable()">
+      <select id="filter-type" onchange="renderTable()">
+        <option value="">সব ধরন</option>
+        <option value="income">শুধু আয়</option>
+        <option value="expense">শুধু খরচ</option>
+      </select>
+      <select id="filter-cat" onchange="renderTable()">
+        <option value="">সব ক্যাটাগরি</option>
+        <option>বই বিক্রয়</option>
+        <option>পণ্য বিক্রয়</option>
+        <option>অনলাইন বিক্রয়</option>
+        <option>সেবা</option>
+        <option>কমিশন</option>
+        <option>অন্যান্য আয়</option>
+        <option>পণ্য ক্রয়</option>
+        <option>বেতন / মজুরি</option>
+        <option>ভাড়া</option>
+        <option>পরিবহন</option>
+        <option>বুস্টিং / মার্কেটিং</option>
+        <option>বিদ্যুৎ / পানি</option>
+        <option>অন্যান্য</option>
+      </select>
+      <input type="month" id="filter-month" onchange="renderTable()">
+    </div>
+    <div class="table-wrap table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>তারিখ</th>
+            <th>বিবরণ</th>
+            <th>ক্যাটাগরি</th>
+            <th>ধরন</th>
+            <th style="text-align:right">পরিমাণ</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Report Tab -->
+  <div id="tab-report" style="display:none">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+      <button class="btn btn-income" style="max-width:220px;padding:10px 18px;font-size:0.92rem" onclick="openPdfModal()">
+        📄 মাসিক PDF রিপোর্ট ডাউনলোড
+      </button>
+    </div>
+    <div class="report-grid">
+      <div class="report-card">
+        <h3>📊 সামগ্রিক চিত্র</h3>
+        <div class="bar-wrap" id="bar-section"></div>
+        <div class="report-item">
+          <span class="label">মোট আয়</span>
+          <span class="val amount-income" id="r-income">৳০</span>
+        </div>
+        <div class="report-item">
+          <span class="label">মোট খরচ</span>
+          <span class="val amount-expense" id="r-expense">৳০</span>
+        </div>
+        <div class="report-item" style="border-top:2px solid var(--border);margin-top:6px;padding-top:10px">
+          <span class="label">নীট লাভ/ক্ষতি</span>
+          <span class="val" id="r-profit">৳০</span>
+        </div>
+      </div>
+      <div class="report-card">
+        <h3>🗂️ ক্যাটাগরি অনুযায়ী খরচ</h3>
+        <div id="cat-report"></div>
+      </div>
+      <div class="report-card">
+        <h3>📅 মাসভিত্তিক সারসংক্ষেপ</h3>
+        <div id="monthly-report"></div>
+      </div>
+      <div class="report-card">
+        <h3>📌 সর্বশেষ ৫টি লেনদেন</h3>
+        <div id="recent-report"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+  <!-- Archive Tab -->
+  <div id="tab-archive" style="display:none">
+    <div id="archive-empty" class="form-card" style="text-align:center;color:var(--text-muted)">
+      <div style="font-size:2.5rem;margin-bottom:10px">🗄️</div>
+      <div style="font-size:1rem;font-weight:600;margin-bottom:6px">কোনো আর্কাইভ নেই</div>
+      <div style="font-size:0.85rem">হিসাব বন্ধ করলে এখানে সংরক্ষিত হবে</div>
+    </div>
+    <div id="archive-list"></div>
+  </div>
+
+</div>
+
+<!-- Archive Modal -->
+<div class="modal-overlay" id="close-modal">
+  <div class="modal">
+    <h2>🗄️ হিসাব আর্কাইভ করুন</h2>
+    <p style="font-size:0.85rem;color:#666;margin-bottom:16px;line-height:1.6">বর্তমান সব লেনদেন আর্কাইভে সংরক্ষিত হবে এবং নতুন করে শূন্য থেকে শুরু হবে।</p>
+    <div class="modal-field">
+      <label>আর্কাইভের নাম (যেমন: জানুয়ারি ২০২৫)</label>
+      <input type="text" id="archive-name" placeholder="যেমন: জানুয়ারি-মার্চ ২০২৫, বছর ১...">
+    </div>
+    <div class="modal-field">
+      <label>নোট (ঐচ্ছিক)</label>
+      <input type="text" id="archive-note" placeholder="এই হিসাব পর্বের বিবরণ...">
+    </div>
+    <div id="close-modal-summary" style="background:#f0fdf4;border-radius:10px;padding:12px;margin-bottom:4px;font-size:0.88rem"></div>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="document.getElementById('close-modal').classList.remove('open')">বাতিল</button>
+      <button class="btn" style="background:linear-gradient(135deg,#ca8a04,#92400e);color:white" onclick="doArchive()">✅ আর্কাইভ করুন</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reset Modal -->
+<div class="modal-overlay" id="reset-modal">
+  <div class="modal">
+    <h2 style="color:#dc2626">🗑️ সব ডেটা মুছে ফেলুন</h2>
+    <p style="font-size:0.88rem;color:#666;margin-bottom:16px;line-height:1.6">⚠️ এই কাজটি ফেরানো যাবে না। সব লেনদেন স্থায়ীভাবে মুছে যাবে।<br>নিশ্চিত করতে নিচে <strong>"মুছে ফেলুন"</strong> লিখুন।</p>
+    <div class="modal-field">
+      <input type="text" id="reset-confirm-inp" placeholder='এখানে "মুছে ফেলুন" লিখুন'>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="document.getElementById('reset-modal').classList.remove('open')">বাতিল</button>
+      <button class="btn btn-expense" onclick="doReset()">🗑️ সব মুছুন</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="pdf-modal">
+  <div class="modal">
+    <h2>📄 মাসিক PDF রিপোর্ট</h2>
+    <div class="modal-field">
+      <label>মাস ও বছর সিলেক্ট করুন</label>
+      <input type="month" id="pdf-month">
+    </div>
+    <div class="modal-field">
+      <label>ব্যবসার নাম (ঐচ্ছিক)</label>
+      <input type="text" id="pdf-biz-name" placeholder="যেমন: মেসার্স রহিম ট্রেডার্স">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="closePdfModal()">বাতিল</button>
+      <button class="btn btn-income" onclick="generatePDF()">📥 PDF ডাউনলোড</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden Print Area -->
+<div id="print-area"></div>
+
+<div id="toast">✅ সফলভাবে যোগ হয়েছে!</div>
+
+<script>
+  // ---- Login ----
+  const GK_USER = 'GK';
+  const ADMIN_PASS = '2601GkSs@2026';
+  const DEFAULT_PASS = 'gk1234';
+
+  function getSavedPass() {
+    return localStorage.getItem('hisab_gk_pass') || DEFAULT_PASS;
+  }
+  function checkLogin() {
+    return sessionStorage.getItem('hisab_gk_auth') === 'true';
+  }
+  function doLogin() {
+    const id = document.getElementById('login-id').value.trim();
+    const pass = document.getElementById('login-pass').value;
+    if (id === GK_USER && pass === getSavedPass()) {
+      sessionStorage.setItem('hisab_gk_auth', 'true');
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('login-error').classList.remove('show');
+    } else {
+      document.getElementById('login-error').classList.add('show');
+      document.getElementById('login-pass').value = '';
+      document.getElementById('login-pass').focus();
+    }
+  }
+  function doLogout() {
+    sessionStorage.removeItem('hisab_gk_auth');
+    location.reload();
+  }
+
+  // Forgot / Admin Recovery
+  function openForgotModal() {
+    document.getElementById('admin-pass-inp').value = '';
+    document.getElementById('new-pass-inp').value = '';
+    document.getElementById('new-pass-confirm-inp').value = '';
+    document.getElementById('forgot-error').style.display = 'none';
+    document.getElementById('forgot-success').style.display = 'none';
+    document.getElementById('forgot-modal').classList.add('open');
+  }
+  function closeForgotModal() {
+    document.getElementById('forgot-modal').classList.remove('open');
+  }
+  function doAdminReset() {
+    const adminPass = document.getElementById('admin-pass-inp').value;
+    const newPass = document.getElementById('new-pass-inp').value;
+    const confirmPass = document.getElementById('new-pass-confirm-inp').value;
+    const errEl = document.getElementById('forgot-error');
+    const sucEl = document.getElementById('forgot-success');
+    errEl.style.display = 'none';
+    sucEl.style.display = 'none';
+    if (adminPass !== ADMIN_PASS) {
+      errEl.textContent = '❌ Admin পাসওয়ার্ড ভুল!';
+      errEl.style.display = 'block'; return;
+    }
+    if (newPass.length < 4) {
+      errEl.textContent = '❌ পাসওয়ার্ড কমপক্ষে ৪ অক্ষরের হতে হবে!';
+      errEl.style.display = 'block'; return;
+    }
+    if (newPass !== confirmPass) {
+      errEl.textContent = '❌ দুটো পাসওয়ার্ড মিলছে না!';
+      errEl.style.display = 'block'; return;
+    }
+    localStorage.setItem('hisab_gk_pass', newPass);
+    sucEl.textContent = '✅ পাসওয়ার্ড পরিবর্তন হয়েছে! এখন লগইন করুন।';
+    sucEl.style.display = 'block';
+    setTimeout(() => { closeForgotModal(); }, 1800);
+  }
+
+  // Change Password (logged in)
+  function doChangePass() {
+    const oldPass = document.getElementById('old-pass-inp').value;
+    const newPass = document.getElementById('cp-new-pass-inp').value;
+    const confirmPass = document.getElementById('cp-new-pass-confirm-inp').value;
+    const errEl = document.getElementById('cp-error');
+    const sucEl = document.getElementById('cp-success');
+    errEl.style.display = 'none';
+    sucEl.style.display = 'none';
+    if (oldPass !== getSavedPass()) {
+      errEl.textContent = '❌ পুরনো পাসওয়ার্ড ভুল!';
+      errEl.style.display = 'block'; return;
+    }
+    if (newPass.length < 4) {
+      errEl.textContent = '❌ পাসওয়ার্ড কমপক্ষে ৪ অক্ষরের হতে হবে!';
+      errEl.style.display = 'block'; return;
+    }
+    if (newPass !== confirmPass) {
+      errEl.textContent = '❌ দুটো পাসওয়ার্ড মিলছে না!';
+      errEl.style.display = 'block'; return;
+    }
+    localStorage.setItem('hisab_gk_pass', newPass);
+    sucEl.textContent = '✅ পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে!';
+    sucEl.style.display = 'block';
+    setTimeout(() => {
+      document.getElementById('change-pass-modal').classList.remove('open');
+      document.getElementById('old-pass-inp').value = '';
+      document.getElementById('cp-new-pass-inp').value = '';
+      document.getElementById('cp-new-pass-confirm-inp').value = '';
+    }, 1800);
+  }
+
+  // Close modals on overlay click
+  document.getElementById('forgot-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeForgotModal();
+  });
+
+  // Check on load
+  if (!checkLogin()) {
+    document.getElementById('login-screen').classList.remove('hidden');
+  } else {
+    document.getElementById('login-screen').classList.add('hidden');
+  }
+
+  // ---- Data ----
+  let entries = JSON.parse(localStorage.getItem('hisab_gk_entries') || '[]');
+
+  function save() { localStorage.setItem('hisab_gk_entries', JSON.stringify(entries)); }
+
+  // ---- Multi-item Entry System ----
+  let currentType = 'expense';
+  let itemRowCount = 0;
+
+  const CATS_EXPENSE = ['পণ্য ক্রয়','বেতন / মজুরি','ভাড়া','পরিবহন','বুস্টিং / মার্কেটিং','বিদ্যুৎ / পানি','সেবা','অন্যান্য'];
+  const CATS_INCOME  = ['বই বিক্রয়','পণ্য বিক্রয়','সেবা','কমিশন','অনলাইন বিক্রয়','অন্যান্য আয়'];
+
+  // ---- Init ----
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('inp-date').value = today;
+  document.getElementById('header-date').textContent = new Date().toLocaleDateString('bn-BD', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+
+  addItemRow(); // start with one blank row
+  updateSummary();
+
+  function getCats() { return currentType === 'expense' ? CATS_EXPENSE : CATS_INCOME; }
+
+  function setEntryType(type) {
+    currentType = type;
+    document.getElementById('type-btn-income').classList.toggle('active-type', type==='income');
+    document.getElementById('type-btn-expense').classList.toggle('active-type', type==='expense');
+    // Update all existing category selects
+    document.querySelectorAll('.item-cat-select').forEach(sel => {
+      const cur = sel.value;
+      sel.innerHTML = getCats().map(c=>`<option${c===cur?' selected':''}>${c}</option>`).join('');
+    });
+    // Update submit button color
+    const btn = document.getElementById('submit-btn');
+    btn.className = 'btn ' + (type==='income' ? 'btn-income' : 'btn-expense');
+    btn.textContent = type==='income' ? '✅ আয় সংরক্ষণ করুন' : '✅ খরচ সংরক্ষণ করুন';
+    updateEntryTotal();
+  }
+
+  function addItemRow(desc='', amount='', cat='', note='') {
+    itemRowCount++;
+    const id = 'item-' + itemRowCount;
+    const catOptions = getCats().map(c=>`<option${c===cat?' selected':''}>${c}</option>`).join('');
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.id = id;
+    row.innerHTML = `
+      <div class="form-group">
+        <label>বিবরণ</label>
+        <input type="text" class="item-desc" placeholder="যেমন: বই কেনা, বুস্টিং..." value="${desc}" oninput="updateEntryTotal()">
+      </div>
+      <div class="form-group">
+        <label>পরিমাণ (৳)</label>
+        <input type="number" class="item-amount" placeholder="০" min="0" step="0.01" value="${amount}" oninput="updateEntryTotal()">
+      </div>
+      <div class="form-group">
+        <label>ক্যাটাগরি</label>
+        <select class="item-cat-select" onchange="handleCatChange(this, '${id}')">${catOptions}<option value="__custom__">✏️ নিজে লিখুন...</option></select>
+        <input type="text" class="item-cat-custom" placeholder="ক্যাটাগরির নাম লিখুন" style="display:none;margin-top:5px;border:1.5px solid var(--border);border-radius:10px;padding:8px 10px;font-family:'Hind Siliguri',sans-serif;font-size:0.9rem;background:white;color:var(--text);outline:none;width:100%">
+      </div>
+      <button class="item-del" onclick="removeItemRow('${id}')" title="সরান">✕</button>
+    `;
+    document.getElementById('items-container').appendChild(row);
+    updateEntryTotal();
+    row.querySelector('.item-desc').focus();
+  }
+
+  function handleCatChange(sel, rowId) {
+    const row = document.getElementById(rowId);
+    const customInput = row.querySelector('.item-cat-custom');
+    if (sel.value === '__custom__') {
+      customInput.style.display = 'block';
+      customInput.focus();
+    } else {
+      customInput.style.display = 'none';
+    }
+  }
+
+  function removeItemRow(id) {
+    const rows = document.querySelectorAll('.item-row');
+    if (rows.length <= 1) { showToast('কমপক্ষে ১টি আইটেম রাখতে হবে'); return; }
+    document.getElementById(id).remove();
+    updateEntryTotal();
+  }
+
+  function updateEntryTotal() {
+    let total = 0;
+    document.querySelectorAll('.item-amount').forEach(inp => {
+      const v = parseFloat(inp.value);
+      if (v > 0) total += v;
+    });
+    const bar = document.getElementById('entry-total-bar');
+    const val = document.getElementById('entry-total-val');
+    bar.style.display = 'flex';
+    val.textContent = formatTk(total);
+    val.style.color = currentType === 'income' ? 'var(--green)' : 'var(--red)';
+  }
+
+  function submitMultiEntry() {
+    const date = document.getElementById('inp-date').value;
+    if (!date) { showToast('❌ তারিখ দিন!'); return; }
+
+    const rows = document.querySelectorAll('.item-row');
+    let added = 0;
+    let errors = [];
+
+    rows.forEach(row => {
+      const desc = row.querySelector('.item-desc').value.trim();
+      const amount = parseFloat(row.querySelector('.item-amount').value);
+      const catSel = row.querySelector('.item-cat-select');
+      const catCustom = row.querySelector('.item-cat-custom');
+      const category = catSel.value === '__custom__' ? (catCustom ? catCustom.value.trim() : '') : catSel.value;
+      if (!desc && !amount) return; // skip blank rows silently
+      if (!desc) { errors.push('বিবরণ লিখুন'); return; }
+      if (!amount || amount <= 0) { errors.push(`"${desc}" এর পরিমাণ দিন`); return; }
+      if (!category) { errors.push(`"${desc}" এর ক্যাটাগরি দিন`); return; }
+      entries.unshift({ id: Date.now() + added, date, type: currentType, desc, amount, category, note: '' });
+      added++;
+    });
+
+    if (errors.length > 0) { showToast('❌ ' + errors[0]); return; }
+    if (added === 0) { showToast('❌ কমপক্ষে একটি আইটেম দিন!'); return; }
+
+    save();
+    updateSummary();
+    showToast(`✅ ${added}টি ${currentType==='income'?'আয়':'খরচ'} যোগ হয়েছে!`);
+
+    // Reset form
+    document.getElementById('items-container').innerHTML = '';
+    itemRowCount = 0;
+    addItemRow();
+    document.getElementById('inp-date').value = new Date().toISOString().slice(0,10);
+  }
+
+  // ---- Summary ----
+  function formatTk(n) {
+    return '৳' + n.toLocaleString('bn-BD', {minimumFractionDigits:0, maximumFractionDigits:2}).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+  }
+  function formatNum(n) {
+    return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+  }
+
+  function updateSummary() {
+    const inc = entries.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
+    const exp = entries.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
+    const profit = inc - exp;
+    const iCount = entries.filter(e=>e.type==='income').length;
+    const eCount = entries.filter(e=>e.type==='expense').length;
+
+    document.getElementById('total-income').textContent = formatTk(inc);
+    document.getElementById('total-expense').textContent = formatTk(exp);
+    document.getElementById('total-profit').textContent = formatTk(Math.abs(profit));
+    document.getElementById('total-profit').style.color = profit >= 0 ? 'var(--blue)' : 'var(--red)';
+    document.getElementById('income-count').textContent = formatNum(iCount) + 'টি লেনদেন';
+    document.getElementById('expense-count').textContent = formatNum(eCount) + 'টি লেনদেন';
+    document.getElementById('profit-label').textContent = profit > 0 ? '📈 লাভ' : profit < 0 ? '📉 ক্ষতি' : '➡️ সমান';
+  }
+
+  // ---- Table ----
+  function renderTable() {
+    const search = document.getElementById('search-inp').value.toLowerCase();
+    const ftype = document.getElementById('filter-type').value;
+    const fcat = document.getElementById('filter-cat').value;
+    const fmonth = document.getElementById('filter-month').value;
+
+    let filtered = entries.filter(e => {
+      if (ftype && e.type !== ftype) return false;
+      if (fcat && e.category !== fcat) return false;
+      if (fmonth && !e.date.startsWith(fmonth)) return false;
+      if (search && !(e.desc.toLowerCase().includes(search) || e.category.toLowerCase().includes(search) || (e.note||'').toLowerCase().includes(search))) return false;
+      return true;
+    });
+
+    const tbody = document.getElementById('table-body');
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="6">কোনো লেনদেন পাওয়া যায়নি 😔</td></tr>';
+      return;
+    }
+    tbody.innerHTML = filtered.map(e => `
+      <tr>
+        <td style="white-space:nowrap;font-size:0.85rem">${formatDate(e.date)}</td>
+        <td>
+          <div style="font-weight:600">${e.desc}</div>
+          ${e.note ? `<div style="font-size:0.75rem;color:var(--text-muted)">${e.note}</div>` : ''}
+        </td>
+        <td><span style="background:#f0fdf4;padding:2px 8px;border-radius:8px;font-size:0.8rem">${e.category}</span></td>
+        <td><span class="badge badge-${e.type}">${e.type==='income'?'আয়':'খরচ'}</span></td>
+        <td style="text-align:right" class="amount-${e.type}">${formatTk(e.amount)}</td>
+        <td><button class="del-btn" onclick="delEntry(${e.id})" title="মুছুন">🗑</button></td>
+      </tr>
+    `).join('');
+  }
+
+  function formatDate(d) {
+    const dt = new Date(d);
+    return dt.toLocaleDateString('bn-BD', {day:'numeric',month:'short',year:'numeric'});
+  }
+
+  function delEntry(id) {
+    if (!confirm('এই লেনদেন মুছে ফেলবেন?')) return;
+    entries = entries.filter(e => e.id !== id);
+    save();
+    updateSummary();
+    renderTable();
+    updateReport();
+    showToast('🗑️ মুছে ফেলা হয়েছে');
+  }
+
+  // ---- Report ----
+  function updateReport() {
+    const inc = entries.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
+    const exp = entries.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
+    const profit = inc - exp;
+    document.getElementById('r-income').textContent = formatTk(inc);
+    document.getElementById('r-expense').textContent = formatTk(exp);
+    const rp = document.getElementById('r-profit');
+    rp.textContent = (profit >= 0 ? '+' : '-') + formatTk(Math.abs(profit));
+    rp.style.color = profit >= 0 ? 'var(--green)' : 'var(--red)';
+
+    // Bars
+    const total = inc + exp;
+    const iBar = total > 0 ? (inc/total*100).toFixed(1) : 0;
+    const eBar = total > 0 ? (exp/total*100).toFixed(1) : 0;
+    document.getElementById('bar-section').innerHTML = `
+      <div class="bar-label"><span>আয়</span><span>${iBar}%</span></div>
+      <div class="bar"><div class="bar-fill income" style="width:${iBar}%"></div></div>
+      <div class="bar-label"><span>খরচ</span><span>${eBar}%</span></div>
+      <div class="bar"><div class="bar-fill expense" style="width:${eBar}%"></div></div>
+    `;
+
+    // Category expenses
+    const cats = {};
+    entries.filter(e=>e.type==='expense').forEach(e => {
+      cats[e.category] = (cats[e.category] || 0) + e.amount;
+    });
+    const sortedCats = Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+    const maxCat = sortedCats[0]?.[1] || 1;
+    document.getElementById('cat-report').innerHTML = sortedCats.length ? sortedCats.map(([cat,amt]) => `
+      <div style="margin-bottom:8px">
+        <div class="bar-label"><span>${cat}</span><span>${formatTk(amt)}</span></div>
+        <div class="bar"><div class="bar-fill expense" style="width:${(amt/maxCat*100).toFixed(1)}%"></div></div>
+      </div>
+    `).join('') : '<div style="color:var(--text-muted);font-size:0.9rem;padding:10px 0">কোনো খরচ নেই</div>';
+
+    // Monthly
+    const monthly = {};
+    entries.forEach(e => {
+      const m = e.date.slice(0,7);
+      if (!monthly[m]) monthly[m] = {income:0, expense:0};
+      monthly[m][e.type] += e.amount;
+    });
+    const sortedMonths = Object.entries(monthly).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,6);
+    document.getElementById('monthly-report').innerHTML = sortedMonths.length ? sortedMonths.map(([m, v]) => {
+      const [yr,mo] = m.split('-');
+      const label = new Date(yr, mo-1, 1).toLocaleDateString('bn-BD', {month:'long', year:'numeric'});
+      const p = v.income - v.expense;
+      return `<div class="report-item">
+        <span class="label">${label}</span>
+        <span class="val" style="color:${p>=0?'var(--green)':'var(--red)'}">${p>=0?'+':''}${formatTk(p)}</span>
+      </div>`;
+    }).join('') : '<div style="color:var(--text-muted);font-size:0.9rem">কোনো ডেটা নেই</div>';
+
+    // Recent 5
+    document.getElementById('recent-report').innerHTML = entries.slice(0,5).map(e => `
+      <div class="report-item">
+        <span class="label">${e.desc.length > 18 ? e.desc.slice(0,18)+'...' : e.desc}</span>
+        <span class="val amount-${e.type}">${formatTk(e.amount)}</span>
+      </div>
+    `).join('') || '<div style="color:var(--text-muted);font-size:0.9rem">কোনো লেনদেন নেই</div>';
+  }
+
+  // ---- Tabs ----
+  function showTab(tab) {
+    ['entry','list','report','archive'].forEach(t => {
+      document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
+    });
+    document.querySelectorAll('.tab-btn').forEach((b,i) => {
+      b.classList.toggle('active', ['entry','list','report','archive'][i]===tab);
+    });
+    if (tab === 'list') renderTable();
+    if (tab === 'report') updateReport();
+    if (tab === 'archive') renderArchive();
+  }
+
+  // ---- Toast ----
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // ---- CSV Export ----
+  function exportCSV() {
+    if (entries.length === 0) { showToast('❌ কোনো ডেটা নেই!'); return; }
+    const headers = ['তারিখ', 'ধরন', 'বিবরণ', 'ক্যাটাগরি', 'পরিমাণ', 'নোট'];
+    const rows = entries.map(e => [e.date, e.type==='income'?'আয়':'খরচ', e.desc, e.category, e.amount, e.note||'']);
+    const csv = '\uFEFF' + [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'hisab_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+    showToast('📥 CSV ডাউনলোড হচ্ছে!');
+  }
+
+  // ---- Archive & Reset ----
+  let archives = JSON.parse(localStorage.getItem('hisab_gk_archives') || '[]');
+  function saveArchives() { localStorage.setItem('hisab_gk_archives', JSON.stringify(archives)); }
+
+  function openCloseModal() {
+    if (entries.length === 0) { showToast('❌ কোনো লেনদেন নেই!'); return; }
+    const inc = entries.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
+    const exp = entries.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
+    const profit = inc - exp;
+    document.getElementById('close-modal-summary').innerHTML =
+      `<b>বর্তমান হিসাব সারসংক্ষেপ:</b><br>
+       আয়: <b style="color:#16a34a">${formatTk(inc)}</b> &nbsp;|&nbsp;
+       খরচ: <b style="color:#dc2626">${formatTk(exp)}</b> &nbsp;|&nbsp;
+       ${profit>=0?'লাভ':'ক্ষতি'}: <b style="color:${profit>=0?'#1d4ed8':'#dc2626'}">${formatTk(Math.abs(profit))}</b><br>
+       মোট লেনদেন: <b>${entries.length}টি</b>`;
+    // Default name = current month
+    const now = new Date();
+    document.getElementById('archive-name').value = now.toLocaleDateString('bn-BD',{month:'long',year:'numeric'});
+    document.getElementById('archive-note').value = '';
+    document.getElementById('close-modal').classList.add('open');
+  }
+
+  function doArchive() {
+    const name = document.getElementById('archive-name').value.trim();
+    if (!name) { showToast('❌ আর্কাইভের নাম দিন!'); return; }
+    const inc = entries.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
+    const exp = entries.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
+    archives.unshift({
+      id: Date.now(),
+      name,
+      note: document.getElementById('archive-note').value.trim(),
+      date: new Date().toISOString().slice(0,10),
+      income: inc,
+      expense: exp,
+      profit: inc - exp,
+      entries: [...entries]
+    });
+    saveArchives();
+    entries = [];
+    save();
+    updateSummary();
+    document.getElementById('close-modal').classList.remove('open');
+    showToast('✅ আর্কাইভ হয়েছে! নতুন হিসাব শুরু।');
+    showTab('entry');
+  }
+
+  function openResetModal() {
+    if (entries.length === 0) { showToast('❌ কোনো ডেটা নেই!'); return; }
+    document.getElementById('reset-confirm-inp').value = '';
+    document.getElementById('reset-modal').classList.add('open');
+  }
+
+  function doReset() {
+    const val = document.getElementById('reset-confirm-inp').value.trim();
+    if (val !== 'মুছে ফেলুন') { showToast('❌ সঠিকভাবে লিখুন!'); return; }
+    entries = [];
+    save();
+    updateSummary();
+    document.getElementById('reset-modal').classList.remove('open');
+    showToast('🗑️ সব ডেটা মুছে গেছে!');
+    showTab('entry');
+  }
+
+  function renderArchive() {
+    const el = document.getElementById('archive-list');
+    const empty = document.getElementById('archive-empty');
+    if (archives.length === 0) { empty.style.display=''; el.innerHTML=''; return; }
+    empty.style.display = 'none';
+    el.innerHTML = archives.map((a,idx) => {
+      const rows = [...a.entries].sort((x,y)=>x.date.localeCompare(y.date)).map((e,i) => `
+        <tr>
+          <td style="color:#aaa">${i+1}</td>
+          <td style="white-space:nowrap;font-size:0.8rem">${formatDate(e.date)}</td>
+          <td>${e.desc}</td>
+          <td>${e.category}</td>
+          <td><span style="padding:2px 6px;border-radius:8px;font-size:0.75rem;font-weight:700;background:${e.type==='income'?'#dcfce7':'#fee2e2'};color:${e.type==='income'?'#16a34a':'#dc2626'}">${e.type==='income'?'আয়':'খরচ'}</span></td>
+          <td style="text-align:right;font-weight:700;color:${e.type==='income'?'#16a34a':'#dc2626'}">${formatTk(e.amount)}</td>
+        </tr>`).join('');
+      return `
+      <div class="archive-card">
+        <div class="archive-header" onclick="toggleArchive(${a.id})">
+          <div>
+            <h3>🗄️ ${a.name}</h3>
+            <div class="ameta">${a.entries.length}টি লেনদেন &nbsp;•&nbsp; সংরক্ষিত: ${formatDate(a.date)}${a.note?` &nbsp;•&nbsp; ${a.note}`:''}</div>
+          </div>
+          <div style="font-size:1.3rem" id="arch-arrow-${a.id}">▼</div>
+        </div>
+        <div class="archive-body" id="arch-body-${a.id}">
+          <div class="archive-summary">
+            <div class="asbox"><div class="al">মোট আয়</div><div class="av" style="color:#16a34a">${formatTk(a.income)}</div></div>
+            <div class="asbox"><div class="al">মোট খরচ</div><div class="av" style="color:#dc2626">${formatTk(a.expense)}</div></div>
+            <div class="asbox"><div class="al">${a.profit>=0?'লাভ':'ক্ষতি'}</div><div class="av" style="color:${a.profit>=0?'#1d4ed8':'#dc2626'}">${formatTk(Math.abs(a.profit))}</div></div>
+          </div>
+          <div class="archive-actions">
+            <button class="arch-btn arch-btn-restore" onclick="restoreArchive(${a.id})">↩️ বর্তমানে ফিরিয়ে আনুন</button>
+            <button class="arch-btn arch-btn-del" onclick="deleteArchive(${a.id})">🗑️ আর্কাইভ মুছুন</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="archive-table">
+              <thead><tr><th>#</th><th>তারিখ</th><th>বিবরণ</th><th>ক্যাটাগরি</th><th>ধরন</th><th style="text-align:right">পরিমাণ</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function toggleArchive(id) {
+    const body = document.getElementById('arch-body-'+id);
+    const arrow = document.getElementById('arch-arrow-'+id);
+    body.classList.toggle('open');
+    arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
+  }
+
+  function restoreArchive(id) {
+    const arch = archives.find(a=>a.id===id);
+    if (!arch) return;
+    if (entries.length > 0) {
+      if (!confirm('বর্তমান '+entries.length+'টি লেনদেন মুছে আর্কাইভ থেকে ফিরিয়ে আনবেন?')) return;
+    }
+    entries = [...arch.entries];
+    save();
+    updateSummary();
+    showToast('↩️ আর্কাইভ ফিরিয়ে আনা হয়েছে!');
+    showTab('list');
+  }
+
+  function deleteArchive(id) {
+    if (!confirm('এই আর্কাইভটি স্থায়ীভাবে মুছে ফেলবেন?')) return;
+    archives = archives.filter(a=>a.id!==id);
+    saveArchives();
+    renderArchive();
+    showToast('🗑️ আর্কাইভ মুছে গেছে');
+  }
+
+  // Close modals on overlay click
+  ['close-modal','reset-modal'].forEach(id => {
+    document.getElementById(id).addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('open');
+    });
+  });
+
+  // ---- PDF Report ----
+  function openPdfModal() {
+    // Default to current month
+    const now = new Date();
+    document.getElementById('pdf-month').value = now.toISOString().slice(0,7);
+    document.getElementById('pdf-modal').classList.add('open');
+  }
+  function closePdfModal() {
+    document.getElementById('pdf-modal').classList.remove('open');
+  }
+
+  function generatePDF() {
+    const month = document.getElementById('pdf-month').value;
+    const bizName = document.getElementById('pdf-biz-name').value.trim() || 'ব্যবসার হিসাব';
+    if (!month) { showToast('❌ মাস সিলেক্ট করুন!'); return; }
+
+    const [yr, mo] = month.split('-');
+    const monthLabel = new Date(yr, mo-1, 1).toLocaleDateString('bn-BD', {month:'long', year:'numeric'});
+
+    // Filter entries for this month
+    const monthEntries = entries.filter(e => e.date.startsWith(month));
+    if (monthEntries.length === 0) { showToast('❌ এই মাসে কোনো লেনদেন নেই!'); return; }
+
+    // Totals
+    const inc = monthEntries.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
+    const exp = monthEntries.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
+    const profit = inc - exp;
+
+    // Category breakdown
+    const cats = {};
+    monthEntries.filter(e=>e.type==='expense').forEach(e => {
+      cats[e.category] = (cats[e.category] || 0) + e.amount;
+    });
+    const catRows = Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+
+    // Income categories
+    const icats = {};
+    monthEntries.filter(e=>e.type==='income').forEach(e => {
+      icats[e.category] = (icats[e.category] || 0) + e.amount;
+    });
+    const icatRows = Object.entries(icats).sort((a,b)=>b[1]-a[1]);
+
+    // Sort entries by date
+    const sorted = [...monthEntries].sort((a,b) => a.date.localeCompare(b.date));
+
+    const printDate = new Date().toLocaleDateString('bn-BD', {day:'numeric',month:'long',year:'numeric'});
+
+    const html = `
+    <div class="pdf-page">
+      <div class="pdf-header">
+        <div>
+          <h1>📊 মাসিক হিসাব রিপোর্ট</h1>
+          <div style="font-size:1rem;color:#16a34a;font-weight:600;margin-top:4px">${monthLabel}</div>
+          <div style="font-size:0.9rem;color:#444;margin-top:2px">${bizName}</div>
+        </div>
+        <div class="meta">
+          রিপোর্ট তৈরি: ${printDate}<br>
+          মোট লেনদেন: ${monthEntries.length}টি
+        </div>
+      </div>
+
+      <div class="pdf-summary">
+        <div class="pdf-sum-box inc">
+          <div class="lbl">মোট আয়</div>
+          <div class="val">${formatTk(inc)}</div>
+        </div>
+        <div class="pdf-sum-box exp">
+          <div class="lbl">মোট খরচ</div>
+          <div class="val">${formatTk(exp)}</div>
+        </div>
+        <div class="pdf-sum-box prf">
+          <div class="lbl">${profit >= 0 ? 'নীট লাভ' : 'নীট ক্ষতি'}</div>
+          <div class="val" style="color:${profit>=0?'#16a34a':'#dc2626'}">${formatTk(Math.abs(profit))}</div>
+        </div>
+      </div>
+
+      ${icatRows.length ? `
+      <div class="pdf-section-title">💚 আয়ের ক্যাটাগরি</div>
+      <table class="pdf-cat-table">
+        ${icatRows.map(([c,a],i) => `<tr><td>${i+1}. ${c}</td><td style="text-align:right;color:#16a34a;font-weight:700">${formatTk(a)}</td><td style="color:#999;font-size:0.78rem;text-align:right">(${(a/inc*100).toFixed(1)}%)</td></tr>`).join('')}
+        <tr style="font-weight:700;border-top:2px solid #bbf7d0"><td>মোট</td><td style="text-align:right;color:#16a34a">${formatTk(inc)}</td><td></td></tr>
+      </table>` : ''}
+
+      ${catRows.length ? `
+      <div class="pdf-section-title">🔴 খরচের ক্যাটাগরি</div>
+      <table class="pdf-cat-table">
+        ${catRows.map(([c,a],i) => `<tr><td>${i+1}. ${c}</td><td style="text-align:right;color:#dc2626;font-weight:700">${formatTk(a)}</td><td style="color:#999;font-size:0.78rem;text-align:right">(${(a/exp*100).toFixed(1)}%)</td></tr>`).join('')}
+        <tr style="font-weight:700;border-top:2px solid #bbf7d0"><td>মোট</td><td style="text-align:right;color:#dc2626">${formatTk(exp)}</td><td></td></tr>
+      </table>` : ''}
+
+      <div class="pdf-section-title">📋 বিস্তারিত লেনদেন</div>
+      <table class="pdf-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>তারিখ</th>
+            <th>বিবরণ</th>
+            <th>ক্যাটাগরি</th>
+            <th>ধরন</th>
+            <th style="text-align:right">পরিমাণ</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sorted.map((e,i) => `
+          <tr>
+            <td style="color:#aaa">${i+1}</td>
+            <td style="white-space:nowrap">${formatDate(e.date)}</td>
+            <td>${e.desc}${e.note ? `<br><span style="color:#aaa;font-size:0.75rem">${e.note}</span>` : ''}</td>
+            <td>${e.category}</td>
+            <td><span style="padding:2px 7px;border-radius:10px;font-size:0.78rem;font-weight:700;background:${e.type==='income'?'#dcfce7':'#fee2e2'};color:${e.type==='income'?'#16a34a':'#dc2626'}">${e.type==='income'?'আয়':'খরচ'}</span></td>
+            <td style="text-align:right" class="${e.type==='income'?'amt-inc':'amt-exp'}">${formatTk(e.amount)}</td>
+          </tr>`).join('')}
+        </tbody>
+        <tfoot>
+          <tr style="background:#f0fdf4;font-weight:700">
+            <td colspan="5" style="text-align:right;padding:8px 10px">নীট ${profit >= 0 ? 'লাভ' : 'ক্ষতি'}:</td>
+            <td style="text-align:right;color:${profit>=0?'#16a34a':'#dc2626'};font-size:1rem;padding:8px 10px">${formatTk(Math.abs(profit))}</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="pdf-footer">
+        এই রিপোর্টটি ব্যবসার হিসাব অ্যাপ দ্বারা স্বয়ংক্রিয়ভাবে তৈরি হয়েছে। ${printDate}
+      </div>
+    </div>`;
+
+    // Inject into print area and trigger print
+    const printArea = document.getElementById('print-area');
+    printArea.innerHTML = html;
+
+    closePdfModal();
+
+    setTimeout(() => {
+      window.print();
+      showToast('📄 PDF সেভ করুন (Save as PDF)');
+    }, 100);
+  }
+
+  // Close modal on overlay click
+  document.getElementById('pdf-modal').addEventListener('click', function(e) {
+    if (e.target === this) closePdfModal();
+  });
+
+  // Sample data for first visit
+  if (entries.length === 0) {
+    entries = [
+      {id:1, date: today, type:'income',  desc:'বই বিক্রয়',       amount:12000, category:'বই বিক্রয়',           note:''},
+      {id:2, date: today, type:'income',  desc:'কোর্স ফি',         amount:5000,  category:'অন্যান্য আয়',         note:''},
+      {id:3, date: today, type:'expense', desc:'বই ক্রয়',          amount:6000,  category:'পণ্য ক্রয়',           note:''},
+      {id:4, date: today, type:'expense', desc:'বুস্টিং খরচ',      amount:2000,  category:'বুস্টিং / মার্কেটিং', note:''},
+      {id:5, date: today, type:'expense', desc:'ট্রান্সপোর্ট খরচ', amount:800,   category:'পরিবহন',               note:''},
+      {id:6, date: today, type:'expense', desc:'দোকান ভাড়া',       amount:3000,  category:'ভাড়া',                note:'মাসিক'},
+    ];
+    save();
+    updateSummary();
+  }
+</script>
+</body>
+</html>
